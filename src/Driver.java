@@ -6,6 +6,10 @@
  * @author Mathias "DromeStrikeClaw" Syndrome
  */
 
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Random;
+
 /**
  * A driver for testing subclasses of ImageCompressor.
  */
@@ -19,46 +23,49 @@ public class Driver
 
     public static void main(String[] args) throws Exception {
         System.out.println("Number of processors: " + NUM_PROCESSORS);
-        //test("Sequential version", new RansacSequential());
-//        test("Threads version", new PrimesThreads());
+        test("Sequential version", new RansacSequential());
+        test("Threads version", new RansacThreads());
 //        test("Fork-join Simple version", new ImageCompressionSimple());
 //        test("Fork-join version", new PrimesForkJoin());
 //        test("Parallel streams version", new PrimesStreams());
-//    }
-//
-//    private static void test(String version, ImageCompressor p) throws Exception {
-//
-//        // warm-up
-//        p.computePrimes(UP_TO);
-//        p.computePrimes(UP_TO);
-//
-//        // compute the primes
-//        Timer.start();
-//        Boolean[] results = p.computePrimes(UP_TO);
-//        Timer.stop();
-//
-//        // output the results
-//        System.out.println("--------" + version + "----------");
-//
-//        // output the number of primes found
-//        long numberOfPrimes = 0;
-//        for (boolean isP : results)
-//            if (isP) {
-//                numberOfPrimes++;
-//            }
-//        System.out.println("Number of primes: " + numberOfPrimes);
-//
-//        // output the time needed to find the primes
-//        System.out.println("Time: " + Timer.getRuntime() + "ms");
-//
-//        // output the speedup
-//        if (sequentialRuntime == 0) {
-//            sequentialRuntime = Timer.getRuntime(); //sequential time
-//        }
-//        else {
-//            System.out.printf("Speed-up: %.2f\n", sequentialRuntime / 1.0 / Timer
-//                    .getRuntime());
-//        }
-//        System.out.println();
+    }
+
+    private static void test(String version, Ransac p) throws Exception {
+
+        ArrayList<Point> points = new ArrayList<>();
+        Random random = new Random();
+        int size = 1000;
+
+        for (int i = 0; i < 200; i++) {
+            points.add(new Point(random.nextInt(size), random.nextInt(size)));
+        }
+        for (int i = 0; i < 1000; i++) {
+            points.add(new Point(random.nextInt(size), 500));
+        }
+
+        // warm-up
+        p.compute(points);
+        p.compute(points);
+
+        // compute results
+        Timer.start();
+        Line2 result = p.compute(points);
+        Timer.stop();
+
+        // output the results
+        System.out.println("--------" + version + "----------");
+        System.out.println("Line: " + result.p1 +" to "+ result.p2);
+        // output the time needed to get da line!
+        System.out.println("Time: " + Timer.getRuntime() + "ms");
+
+        // output the speedup
+        if (sequentialRuntime == 0) {
+            sequentialRuntime = Timer.getRuntime(); //sequential time
+        }
+        else {
+            System.out.printf("Speed-up: %.2f\n", sequentialRuntime / 1.0 / Timer
+                    .getRuntime());
+        }
+        System.out.println();
     }
 }
