@@ -17,7 +17,7 @@ public class Line2 {
         this.p2 = p2;
         this.fit = 0;
         this.m = ((p2.getY() - p1.getY()) / (p2.getX() - p1.getX()));
-        // slope (gradient) of the line
+        // slope (gradient) of the lines
         this.b = p2.getY() - this.m * p2.getX();
     }
 }

@@ -8,7 +8,7 @@ import java.util.Random;
 
 public abstract class Ransac {
     /**
-     * finds the intercept of the normal from a point to the estimated line model
+     * finds the intercept of the normal from a point to the estimated lines model
      */
     public Point findIntercept(Line2 line, Point point ) {
         double x,y;
@@ -59,7 +59,7 @@ public abstract class Ransac {
                 }
             }
 
-            //find a line model for the randomly selected points
+            //find a lines model for the randomly selected points
             tmpmodel = new Line2(maybe_points.get(0), maybe_points.get(1));
 
             //find orthogonal lines to the model for all given points

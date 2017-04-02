@@ -20,32 +20,40 @@ public class Driver
     final static int UP_TO = 3500000;
     static long sequentialRuntime = 0;
     final static int NUM_PROCESSORS = Runtime.getRuntime().availableProcessors();
+    final static int SIZE = 1000;
+    private static ArrayList<Point> points;
 
     public static void main(String[] args) throws Exception {
-        System.out.println("Number of processors: " + NUM_PROCESSORS);
-        test("Sequential version", new RansacSequential());
-        test("Threads version", new RansacThreads());
-//        test("Fork-join Simple version", new ImageCompressionSimple());
-//        test("Fork-join version", new PrimesForkJoin());
-//        test("Parallel streams version", new PrimesStreams());
-    }
 
-    private static void test(String version, Ransac p) throws Exception {
+        Drawer drawer = new Drawer(SIZE, SIZE);
 
-        ArrayList<Point> points = new ArrayList<>();
+        points = new ArrayList<>();
         Random random = new Random();
         int size = 1000;
 
-        for (int i = 0; i < 200; i++) {
+        for (int i = 0; i < size/5; i++) {
             points.add(new Point(random.nextInt(size), random.nextInt(size)));
         }
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < size; i++) {
             points.add(new Point(random.nextInt(size), 500));
         }
+        drawer.setPoints(points);
+
+
+        System.out.println("Number of processors: " + NUM_PROCESSORS);
+        test("Sequential version", new RansacSequential(), drawer);
+        test("Threads version", new RansacThreads(), drawer);
+//        test("Fork-join Simple version", new ImageCompressionSimple());
+//        test("Fork-join version", new PrimesForkJoin());
+//        test("Parallel streams version", new PrimesStreams());
+        drawer.setVisible(true);
+    }
+
+    private static void test(String version, Ransac p, Drawer drawer) throws Exception {
 
         // warm-up
         p.compute(points);
-        p.compute(points);
+//        p.compute(points);
 
         // compute results
         Timer.start();
@@ -55,7 +63,7 @@ public class Driver
         // output the results
         System.out.println("--------" + version + "----------");
         System.out.println("Line: " + result.p1 +" to "+ result.p2);
-        // output the time needed to get da line!
+        // output the time needed to get da lines!
         System.out.println("Time: " + Timer.getRuntime() + "ms");
 
         // output the speedup
@@ -66,6 +74,8 @@ public class Driver
             System.out.printf("Speed-up: %.2f\n", sequentialRuntime / 1.0 / Timer
                     .getRuntime());
         }
+
+        drawer.addLine(result.p1, result.p2);
         System.out.println();
     }
 }

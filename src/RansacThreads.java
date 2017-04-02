@@ -121,7 +121,7 @@ public class RansacThreads extends Ransac {
             Line2 line = new RansacThreads().compute(points);
 
             Drawer drawer = new Drawer(size, size);
-            drawer.setLine(line.p1, line.p2);
+            drawer.addLine(line.p1, line.p2);
             drawer.setPoints(points);
             drawer.setVisible(true);
         }

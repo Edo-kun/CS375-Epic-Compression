@@ -31,7 +31,7 @@ public class RansacSequential extends Ransac {
         Line2 line = new RansacSequential().compute(points);
 
         Drawer drawer = new Drawer(size, size);
-        drawer.setLine(line.p1, line.p2);
+        drawer.addLine(line.p1, line.p2);
         drawer.setPoints(points);
         drawer.setVisible(true);
     }
