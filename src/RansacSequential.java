@@ -1,20 +1,29 @@
+/**
+ * File: RansacSequential.java
+ * @author Shawn Jiang
+ * @author Alex Rinker
+ * @author Ed Zhou
+ * @author Mathias "DromeStrikeClaw" Syndrome
+ * Class: CS375
+ * Project: 3
+ * Date: April 3 2017
+ */
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
 
 /**
- * Sequential run of ransac
+ * Class to run ransac sequentially
  */
 public class RansacSequential extends Ransac {
-
-
     @Override
     public Line2 computeRansac(ArrayList<Point> points) {
         return ransac(points, points.size());
     }
 
     /**
-     * test dat code
+     * test code
      * @param args
      */
     public static void main(String[] args) {

@@ -1,3 +1,14 @@
+/**
+ * File: RansacForkJoin.java
+ * @author Shawn Jiang
+ * @author Alex "hyukhyuk" Rinker
+ * @author Edokunzilla Zhou
+ * @author Mathias "DromeStrikeClaw" Syndrome
+ * Class: CS375
+ * Project: 3
+ * Date: April 3 2017
+ */
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
@@ -5,7 +16,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
 /**
- * Threaded run of ransac
+ * A class to run ransac with fork join threads
  */
 public class RansacForkJoin extends Ransac {
     public static final int NUM_THREADS = Runtime.getRuntime().availableProcessors();
@@ -53,11 +64,13 @@ public class RansacForkJoin extends Ransac {
         return fanInThreads[0].result;
     }
 
-
+    /** Recursive class to contain recursive method */
     class RansacAction extends RecursiveAction {
         private ArrayList<Point> points;
         private Line2[] results;
+        /** The low bound index */
         private int low;
+        /** The high bound index*/
         private int high;
 
         public RansacAction(ArrayList<Point> points, Line2[] r, int low, int high) {
@@ -82,11 +95,16 @@ public class RansacForkJoin extends Ransac {
     }
 
 
-    class FanInThread extends Thread {
-        Line2 l1;
-        Line2 l2;
-        Line2 result;
-        public FanInThread(Line2 l1, Line2 l2) {
+    /** Thread to assist in fanning in the best fit*/
+    private class FanInThread extends Thread {
+        /** First line */
+        private Line2 l1;
+        /** Second line */
+        private Line2 l2;
+        /** The line with more inliers */
+        private Line2 result;
+
+        private FanInThread(Line2 l1, Line2 l2) {
             this.l1 = l1;
             this.l2 = l2;
         }

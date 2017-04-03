@@ -1,16 +1,26 @@
+/**
+ * File: RansacThreads.java
+ * @author Shawn Jiang
+ * @author Alex Rinker
+ * @author Edokun Zhou
+ * @author Mathias "DromeStrikeClaw" Syndrome
+ * Class: CS375
+ * Project: 3
+ * Date: April 3 2017
+ */
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
 
 /**
- * Threaded run of ransac
+ * A class to run ransac with multiple threads
  */
 public class RansacThreads extends Ransac {
     public static final int NUM_THREADS = Runtime.getRuntime().availableProcessors();
 
     @Override
     public Line2 computeRansac(ArrayList<Point> points) {
-        Line2 model;
         //create an array of threads and start them running
         RansacThread[] ransacThreads = new RansacThread[NUM_THREADS];
         FanInThread[] fanInThreads = new FanInThread[NUM_THREADS/2];
@@ -35,7 +45,7 @@ public class RansacThreads extends Ransac {
             fanInThreads[j].start();
         }
 
-        //wait for initial collect
+        // wait for initial collect from ransac to fan in threads
         for (FanInThread t : fanInThreads) {
             try {
                 t.join();
@@ -44,6 +54,7 @@ public class RansacThreads extends Ransac {
             }
         }
 
+        // finish fan in
         i=i/2;
         while(i > 1) {
             for(int j = 0; j<i; j++) {
@@ -62,16 +73,21 @@ public class RansacThreads extends Ransac {
             i=i/2;
         }
 
-
-
         return fanInThreads[0].result;
     }
 
-    class RansacThread extends Thread {
-        Line2 model;
-        ArrayList<Point> points;
-        int iterations;
-        public RansacThread(ArrayList<Point> points, int iterations) {
+    /**
+     * Thread to perform ransac with a certain amount of iterations
+     */
+    private class RansacThread extends Thread {
+        /** model result from ransac */
+        private Line2 model;
+        /** Points to perform ransac upon */
+        private ArrayList<Point> points;
+        /** number of lines to ransac */
+        private int iterations;
+
+        private RansacThread(ArrayList<Point> points, int iterations) {
             this.points = points;
             this.iterations = iterations;
         }
@@ -83,11 +99,16 @@ public class RansacThreads extends Ransac {
 
     }
 
-    class FanInThread extends Thread {
-        Line2 l1;
-        Line2 l2;
-        Line2 result;
-        public FanInThread(Line2 l1, Line2 l2) {
+    /** Thread to assist in fanning in the best fit*/
+    private class FanInThread extends Thread {
+        /** First line */
+        private Line2 l1;
+        /** Second line */
+        private Line2 l2;
+        /** The line with more inliers */
+        private Line2 result;
+
+        private FanInThread(Line2 l1, Line2 l2) {
             this.l1 = l1;
             this.l2 = l2;
         }
@@ -103,7 +124,7 @@ public class RansacThreads extends Ransac {
     }
 
     /**
-     * test dat code
+     * test code
      * @param args
      */
     public static void main(String[] args) {

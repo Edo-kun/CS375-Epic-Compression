@@ -1,10 +1,21 @@
+/**
+ * File: RansacStreams.java
+ * @author Shawn Jiang
+ * @author Alex "hyukeweaewfahyuk" Rinker
+ * @author Edokunzilla Zhousus
+ * @author Mathias "DromeStrikeClaw" Syndrome "DaClawOfTheFenix"
+ * Class: CS375
+ * Project: 3
+ * Date: April 3 2017
+ */
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.stream.IntStream;
 
 /**
- * Threaded run of ransac
+ * A class to run ransac with streams
  */
 public class RansacStreams extends Ransac {
     @Override
@@ -48,11 +59,16 @@ public class RansacStreams extends Ransac {
         return fanInThreads[0].result;
     }
 
-    class FanInThread extends Thread {
-        Line2 l1;
-        Line2 l2;
-        Line2 result;
-        public FanInThread(Line2 l1, Line2 l2) {
+    /** Thread to assist in fanning in the best fit*/
+    private class FanInThread extends Thread {
+        /** First line */
+        private Line2 l1;
+        /** Second line */
+        private Line2 l2;
+        /** The line with more inliers */
+        private Line2 result;
+
+        private FanInThread(Line2 l1, Line2 l2) {
             this.l1 = l1;
             this.l2 = l2;
         }

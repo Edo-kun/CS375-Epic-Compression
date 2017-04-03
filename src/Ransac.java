@@ -1,14 +1,31 @@
+/**
+ * File: Ransac.java
+ * @author Shawn Jiang
+ * @author Alex Rinker
+ * @author Ed Zhou
+ * @author Mathias "DromeStrikeClaw" Syndrome
+ * Class: CS375
+ * Project: 3
+ * Date: April 3 2017
+ */
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
 
 /**
- * This class does ransac sequentially with 0 parallel stuff
+ * A class for finding a line given a list of points
  */
 
 public abstract class Ransac {
+    /** The max distance from the line a point can be to be counted as within the fit */
+    final static int MAXDIST = 1;
+
     /**
      * finds the intercept of the normal from a point to the estimated lines model
+     * @param line the line
+     * @param point the point being compared
+     * @return intercept on the line
      */
     public Point findIntercept(Line2 line, Point point ) {
         double x,y;
@@ -21,65 +38,59 @@ public abstract class Ransac {
 
 
     /** the ransac algorithm
-     *
-     * @param points
+     * @param points list of points to run ransac on
+     * @param iterations the number of times ransac will be performed
      * @return
      */
     public Line2 ransac(ArrayList<Point> points, int iterations) {
-        Line2 tmpmodel;
-        Line2 model = new Line2();
-        ArrayList<Point> maybe_points = new ArrayList<>();
-        ArrayList<Point> test_points = new ArrayList<>();
-        Point p0;
-        Point p1;
-        int r0,r1;
-        int i,j;
-        double dist;
-        int max = 0;
+        // base model to be replaced by algorithm
+        Line2 model = new Line2(points.get(0), points.get(points.size()-1));
         Random random = new Random();
 
         //Perform RANSAC iterations n times!~~~~
-        for(i=0;i < iterations; i++){
-            //make sure lists are empty
-            maybe_points.clear();
-            test_points.clear();
-            r0 = 0;
-            r1 = 0;
+        for(int i = 0;i < iterations; i++) {
+            // indices of points
+            int r0 = 0;
+            int r1 = 0;
+
+            // find two unique random indices
             while(points.get(r0).getX() == points.get(r1).getX()) {
-                r0 = (int)(random.nextDouble()*points.size());
-                r1 = (int)(random.nextDouble()*points.size());
+                r0 = random.nextInt(points.size());
+                r1 = random.nextInt(points.size());
             }
 
-            maybe_points.add(points.get(r0));
-            maybe_points.add(points.get(r1));
+            // the tested points
+            ArrayList<Point> testPoints = new ArrayList<>();
 
-            for(j=0;j<points.size();j++){
-                if(j != r0 && j != r1){
-                    test_points.add(points.get(j));
+            // add n points to test line fitness
+            for(int j = 0; j < points.size(); j++){
+                int index = random.nextInt(points.size());
+                if(index != r0 && index != r1){
+                    testPoints.add(points.get(j));
                 }
             }
 
             //find a lines model for the randomly selected points
-            tmpmodel = new Line2(maybe_points.get(0), maybe_points.get(1));
+            Line2 tmpmodel = new Line2(points.get(r0), points.get(r1));
 
             //find orthogonal lines to the model for all given points
-            for(j=0;j < points.size()-2;j++){
+            for(int j = 0; j < testPoints.size(); j++){
 
-                p0 = test_points.get(j);
+                Point p0 = testPoints.get(j);
 
                 //find an intercept point of the model
-                p1 = findIntercept(tmpmodel, p0);
+                Point p1 = findIntercept(tmpmodel, p0);
 
                 // distance from point to the model
-                dist = Math.pow(Math.pow((p1.x - p0.x),2) + Math.pow((p1.y - p0.y),2),.5);
+                double dist = Math.pow(Math.pow((p1.x - p0.x),2) + Math.pow((p1.y - p0.y),2),.5);
 
                 // check whether it's an inlier or not
-                if(dist < Driver.THRESHOLD) {
+                if(dist < MAXDIST) {
                     tmpmodel.fit++;
                 }
             }
-            if(tmpmodel.fit >= max){
-                max = tmpmodel.fit;
+            // replace model with better fit line
+            if(tmpmodel.fit >= model.fit){
                 model = tmpmodel;
             }
         }
