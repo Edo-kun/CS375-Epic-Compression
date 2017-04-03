@@ -1,37 +1,21 @@
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 /**
  * Threaded run of ransac
  */
-public class RansacThreads extends Ransac {
-    public static final int NUM_THREADS = Runtime.getRuntime().availableProcessors();
-
+public class RansacStreams extends Ransac {
     @Override
     public Line2 computeRansac(ArrayList<Point> points) {
-        Line2 model;
-        //create an array of threads and start them running
-        RansacThread[] ransacThreads = new RansacThread[NUM_THREADS];
-        FanInThread[] fanInThreads = new FanInThread[NUM_THREADS/2];
+        Line2[] lines = IntStream.range(0, points.size()).parallel().mapToObj(e -> ransac(points, 1)).toArray(s -> new Line2[points.size()]);
 
-        for (int i = 0; i < ransacThreads.length; i++) {
-            ransacThreads[i] = new RansacThread(points, points.size()/NUM_THREADS);
-            ransacThreads[i].start();
-        }
-
-        //wait for all threads to finish
-        for (RansacThread t : ransacThreads) {
-            try {
-                t.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        FanInThread[] fanInThreads = new FanInThread[lines.length/2];
         //initial collect and find best fits
-        int i = NUM_THREADS/2;
+        int i = lines.length/2;
         for(int j = 0; j<i; j++) {
-            fanInThreads[j] = new FanInThread(ransacThreads[j].model, ransacThreads[j+i].model);
+            fanInThreads[j] = new FanInThread(lines[j], lines[j+i]);
             fanInThreads[j].start();
         }
 
@@ -58,29 +42,10 @@ public class RansacThreads extends Ransac {
                     e.printStackTrace();
                 }
             }
-
             i=i/2;
         }
 
-
-
         return fanInThreads[0].result;
-    }
-
-    class RansacThread extends Thread {
-        Line2 model;
-        ArrayList<Point> points;
-        int iterations;
-        public RansacThread(ArrayList<Point> points, int iterations) {
-            this.points = points;
-            this.iterations = iterations;
-        }
-
-        @Override
-        public void run() {
-             this.model = ransac(this.points, iterations);
-        }
-
     }
 
     class FanInThread extends Thread {
@@ -107,7 +72,7 @@ public class RansacThreads extends Ransac {
      * @param args
      */
     public static void main(String[] args) {
-        for(int j=0; j< 50; j++) {
+        for(int j=0; j< 1; j++) {
             ArrayList<Point> points = new ArrayList<>();
             Random random = new Random();
             int size = 1000;
@@ -118,7 +83,7 @@ public class RansacThreads extends Ransac {
             for (int i = 0; i < 1000; i++) {
                 points.add(new Point(random.nextInt(size), 500));
             }
-            Line2 line = new RansacThreads().computeRansac(points);
+            Line2 line = new RansacStreams().computeRansac(points);
 
             Drawer drawer = new Drawer(size, size);
             drawer.addLine(line.p1, line.p2);

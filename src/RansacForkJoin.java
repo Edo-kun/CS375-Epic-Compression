@@ -1,37 +1,26 @@
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveAction;
 
 /**
  * Threaded run of ransac
  */
-public class RansacThreads extends Ransac {
+public class RansacForkJoin extends Ransac {
     public static final int NUM_THREADS = Runtime.getRuntime().availableProcessors();
 
     @Override
     public Line2 computeRansac(ArrayList<Point> points) {
-        Line2 model;
-        //create an array of threads and start them running
-        RansacThread[] ransacThreads = new RansacThread[NUM_THREADS];
+        Line2[] results = new Line2[NUM_THREADS];
+        ForkJoinPool pool = new ForkJoinPool();
+        pool.invoke(new RansacAction(points, results, 0, NUM_THREADS-1));
+
         FanInThread[] fanInThreads = new FanInThread[NUM_THREADS/2];
-
-        for (int i = 0; i < ransacThreads.length; i++) {
-            ransacThreads[i] = new RansacThread(points, points.size()/NUM_THREADS);
-            ransacThreads[i].start();
-        }
-
-        //wait for all threads to finish
-        for (RansacThread t : ransacThreads) {
-            try {
-                t.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
         //initial collect and find best fits
         int i = NUM_THREADS/2;
         for(int j = 0; j<i; j++) {
-            fanInThreads[j] = new FanInThread(ransacThreads[j].model, ransacThreads[j+i].model);
+            fanInThreads[j] = new FanInThread(results[j], results[j+i]);
             fanInThreads[j].start();
         }
 
@@ -58,30 +47,40 @@ public class RansacThreads extends Ransac {
                     e.printStackTrace();
                 }
             }
-
             i=i/2;
         }
-
-
 
         return fanInThreads[0].result;
     }
 
-    class RansacThread extends Thread {
-        Line2 model;
-        ArrayList<Point> points;
-        int iterations;
-        public RansacThread(ArrayList<Point> points, int iterations) {
+
+    class RansacAction extends RecursiveAction {
+        private ArrayList<Point> points;
+        private Line2[] results;
+        private int low;
+        private int high;
+
+        public RansacAction(ArrayList<Point> points, Line2[] r, int low, int high) {
             this.points = points;
-            this.iterations = iterations;
+            results = r;
+            this.low = low;
+            this.high = high;
         }
 
         @Override
-        public void run() {
-             this.model = ransac(this.points, iterations);
-        }
+        protected void compute() {
+            if (this.low == this.high) {
+                results[this.low] = ransac(points, points.size()/NUM_THREADS);
 
+            } else { // fork the work into two tasks for other threads
+                int h = (int)(this.high-(Math.ceil(((double)(this.high-this.low)/2))));
+                RansacAction left = new RansacAction(points, results, this.low, h);
+                RansacAction right = new RansacAction(points, results, h+1, this.high);
+                invokeAll(left, right);
+            }
+        }
     }
+
 
     class FanInThread extends Thread {
         Line2 l1;
@@ -107,7 +106,7 @@ public class RansacThreads extends Ransac {
      * @param args
      */
     public static void main(String[] args) {
-        for(int j=0; j< 50; j++) {
+        for(int j=0; j< 1; j++) {
             ArrayList<Point> points = new ArrayList<>();
             Random random = new Random();
             int size = 1000;
@@ -118,7 +117,7 @@ public class RansacThreads extends Ransac {
             for (int i = 0; i < 1000; i++) {
                 points.add(new Point(random.nextInt(size), 500));
             }
-            Line2 line = new RansacThreads().computeRansac(points);
+            Line2 line = new RansacForkJoin().computeRansac(points);
 
             Drawer drawer = new Drawer(size, size);
             drawer.addLine(line.p1, line.p2);

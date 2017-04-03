@@ -9,7 +9,7 @@ public class RansacSequential extends Ransac {
 
 
     @Override
-    public Line2 compute(ArrayList<Point> points) {
+    public Line2 computeRansac(ArrayList<Point> points) {
         return ransac(points, points.size());
     }
 
@@ -28,7 +28,7 @@ public class RansacSequential extends Ransac {
         for (int i = 0; i < 1000; i++) {
             points.add(new Point(random.nextInt(size), 500));
         }
-        Line2 line = new RansacSequential().compute(points);
+        Line2 line = new RansacSequential().computeRansac(points);
 
         Drawer drawer = new Drawer(size, size);
         drawer.addLine(line.p1, line.p2);

@@ -29,7 +29,7 @@ public class Driver
 
         points = new ArrayList<>();
         Random random = new Random();
-        int size = 1000;
+        int size = 10000;
 
         for (int i = 0; i < size/5; i++) {
             points.add(new Point(random.nextInt(size), random.nextInt(size)));
@@ -43,21 +43,20 @@ public class Driver
         System.out.println("Number of processors: " + NUM_PROCESSORS);
         test("Sequential version", new RansacSequential(), drawer);
         test("Threads version", new RansacThreads(), drawer);
-//        test("Fork-join Simple version", new ImageCompressionSimple());
-//        test("Fork-join version", new PrimesForkJoin());
-//        test("Parallel streams version", new PrimesStreams());
-        drawer.setVisible(true);
+        test("Fork-join version", new RansacForkJoin(), drawer);
+        test("Parallel streams version", new RansacStreams(), drawer);
+//        drawer.setVisible(true);
     }
 
     private static void test(String version, Ransac p, Drawer drawer) throws Exception {
 
         // warm-up
-        p.compute(points);
-//        p.compute(points);
-
-        // compute results
+        for(int i = 0; i<NUM_PROCESSORS/2;i++) {
+            p.computeRansac(points);
+        }
+        // computeRansac results
         Timer.start();
-        Line2 result = p.compute(points);
+        Line2 result = p.computeRansac(points);
         Timer.stop();
 
         // output the results

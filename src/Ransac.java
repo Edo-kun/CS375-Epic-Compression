@@ -88,7 +88,7 @@ public abstract class Ransac {
     }
 
     /**
-     * compute the ransac algorithm
+     * computeRansac the ransac algorithm
      */
-    public abstract Line2 compute(ArrayList<Point> points);
+    public abstract Line2 computeRansac(ArrayList<Point> points);
 }
