@@ -59,7 +59,7 @@ public class Driver {
 
     private static void test(String version, Ransac p, Drawer drawer) throws Exception {
         // warm-up
-        for(int i = 0; i<NUM_PROCESSORS/8;i++) {
+        for(int i = 0; i<NUM_PROCESSORS/2;i++) {
             p.computeRansac(points);
         }
         // computeRansac results
