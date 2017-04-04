@@ -64,8 +64,7 @@ public abstract class Ransac {
 
             // add n points to test line fitness
             for(int j = 0; j < points.size(); j++){
-                int index = random.nextInt(points.size());
-                if(index != r0 && index != r1){
+                if(j != r0 && j != r1){
                     testPoints.add(points.get(j));
                 }
             }
@@ -73,7 +72,7 @@ public abstract class Ransac {
             //find a lines model for the randomly selected points
             Line2 tmpmodel = new Line2(points.get(r0), points.get(r1));
 
-            //find orthogonal lines to the model for all given points
+            //find orthogonal lines to the model for all other given points
             for(int j = 0; j < testPoints.size(); j++){
 
                 Point p0 = testPoints.get(j);
